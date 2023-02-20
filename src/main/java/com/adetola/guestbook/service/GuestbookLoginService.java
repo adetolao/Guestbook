@@ -12,23 +12,19 @@ import java.util.Optional;
 public interface GuestbookLoginService extends UserDetailsService {
     GuestbookUser save(GuestbookUserDetail guestbookUserDetail);
 
-    public Iterable<GuestbookUser> findAll() ;
-
-    public Optional<GuestbookUser> findById(Integer id) ;
-
     public boolean checkUserExist(GuestbookUser User);
 
     public GuestbookUser saveUser(GuestbookUser user);
 
     public List<GuestbookUser> getAllUsers();
 
-    public GuestbookUser getUserById(Integer id);
+    public GuestbookUser getUserById(Long id);
 
-    public GuestbookUser updateUser(GuestbookUser user, Integer id);
+    public GuestbookUser updateUser(GuestbookUser user, Long id);
 
-    public void deleteUser(Integer id);
+    public void deleteUser(Long id);
 
-    public GuestbookUser changeUserPrivilege(GuestbookUser user, Integer adminId, Integer id);
+    public GuestbookUser changeUserPrivilege(GuestbookUser user, Long adminId, Long id);
 
     public GuestbookUser authenticateUser(GuestbookUser user);
 }

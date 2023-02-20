@@ -1,29 +1,25 @@
 package com.adetola.guestbook.service;
 
-import com.adetola.guestbook.model.GuestbookUserDetail;
-import com.adetola.guestbook.repository.UserRepository;
-import com.adetola.guestbook.auth.GuestbookPasswordEncoder;
 import com.adetola.guestbook.entity.GuestbookRole;
 import com.adetola.guestbook.entity.GuestbookUser;
 import com.adetola.guestbook.exception.ResourceNotFoundException;
-import com.adetola.guestbook.exception.UserNoPrivilegeException;
+import com.adetola.guestbook.model.GuestbookUserDetail;
+import com.adetola.guestbook.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class GuestbookLoginServiceImpl implements GuestbookLoginService {
-
     @Autowired
     private UserRepository userRepository;
 
@@ -32,15 +28,17 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
         this.userRepository = userRepository;
     }
 
+/*
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+*/
 
     @Override
     public boolean checkUserExist(GuestbookUser user) {
         List<GuestbookUser> allUsers = userRepository.findAll();
 
         for (GuestbookUser existUser : allUsers) {
-            if (existUser.getEmail().equals(user.getEmail())){
+            if (existUser.getEmail().equals(user.getEmail())) {
                 return true;
             }
         }
@@ -55,7 +53,8 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
 
         System.out.println("=======================["+hashedPassword+"]========================");
         user.setPassword(hashedPassword);
- */       return userRepository.save(user);
+ */
+        return userRepository.save(user);
     }
 
     @Override
@@ -64,12 +63,12 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     }
 
     @Override
-    public GuestbookUser getUserById(Integer id) {
+    public GuestbookUser getUserById(Long id) {
         return userRepository.getById(id);
     }
 
     @Override
-    public GuestbookUser updateUser(GuestbookUser user, Integer id) {
+    public GuestbookUser updateUser(GuestbookUser user, Long id) {
         // we need to check whether GuestbookUser with given username exists in DB or not
         GuestbookUser existingUser = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("GuestbookUser", "Id", id));
@@ -84,26 +83,15 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     }
 
     @Override
-    public GuestbookUser save(GuestbookUserDetail registrationDto) {
-        GuestbookUser user = new GuestbookUser(registrationDto.getFirstName(),
-                registrationDto.getLastName(), registrationDto.getEmail(),
-                passwordEncoder.encode(registrationDto.getPassword()), Arrays.asList(new GuestbookRole("ROLE_USER")));
-
+    public GuestbookUser save(GuestbookUserDetail guestbookUserDetail) {
+        GuestbookUser user = new GuestbookUser(1L, guestbookUserDetail.getFirstName(),
+                guestbookUserDetail.getLastName(), guestbookUserDetail.getEmail(),
+                guestbookUserDetail.getPassword(), Arrays.asList(new GuestbookRole(1L, "ROLE_USER")));
         return userRepository.save(user);
     }
 
     @Override
-    public Iterable<GuestbookUser> findAll() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public Optional<GuestbookUser> findById(Integer id) {
-        return userRepository.findById(id);
-    }
-
-    @Override
-    public void deleteUser(Integer id) {
+    public void deleteUser(Long id) {
 
         // check whether a GuestbookUser exist in a DB or not
         userRepository.findById(id).orElseThrow(() ->
@@ -112,7 +100,7 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     }
 
     @Override
-    public GuestbookUser changeUserPrivilege(GuestbookUser user, Integer adminId, Integer id) {
+    public GuestbookUser changeUserPrivilege(GuestbookUser user, Long adminId, Long id) {
         GuestbookUser adminUser = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("AdminUser", "adminId", adminId));
 
@@ -139,37 +127,36 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     @Override
     public GuestbookUser authenticateUser(GuestbookUser user) {
         List<GuestbookUser> allUsers = userRepository.findAll();
-        GuestbookPasswordEncoder passwordEncoder = new GuestbookPasswordEncoder();
+//        GuestbookPasswordEncoder passwordEncoder = new GuestbookPasswordEncoder();
 
         for (GuestbookUser existingUser : allUsers) {
             if (existingUser.getEmail().equals(user.getEmail())) {
-                if (matchPassword(user.getPassword(), existingUser.getPassword())) {
+                if (existingUser.getPassword().equals(user.getPassword())) {
                     return user;
-                }
-                else {
-                    throw new UsernameNotFoundException("Invalid password");
                 }
             }
         }
         return null;
     }
 
+/*
     public boolean matchPassword (String inputPassword, String storedPassword) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         return passwordEncoder.matches(inputPassword, storedPassword);
     }
+*/
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         GuestbookUser user = userRepository.findByEmail(username);
-        if(user == null) {
+        if (user == null) {
             throw new UsernameNotFoundException("Invalid username or password.");
         }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), mapRolesToAuthorities(user.getRoles()));
+        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), mapRolesToUsers(user.getRoles()));
     }
 
-    private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<GuestbookRole> roles){
+    private Collection<? extends GrantedAuthority> mapRolesToUsers(Collection<GuestbookRole> roles) {
         return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
     }
 
