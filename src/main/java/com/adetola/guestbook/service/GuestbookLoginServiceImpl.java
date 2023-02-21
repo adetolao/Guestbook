@@ -32,13 +32,11 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public boolean checkUserExist(GuestbookUser user) {
-        List<GuestbookUser> allUsers = userRepository.findAll();
+    public boolean checkUserExists(GuestbookUser user) {
+        GuestbookUser existingUser = userRepository.findByEmail(user.getEmail());
 
-        for (GuestbookUser existUser : allUsers) {
-            if (existUser.getEmail().equals(user.getEmail())) {
-                return true;
-            }
+        if (existingUser != null) {
+            return true;
         }
 
         return false;
@@ -114,13 +112,17 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
         if (null != existingUser) {
             throw new UsernameNotFoundException("Username already used.");
         }
-        GuestbookUser user = new GuestbookUser(guestbookUserDetail.getFirstName(),
-                guestbookUserDetail.getLastName(), guestbookUserDetail.getEmail(),
-                passwordEncoder.encode(guestbookUserDetail.getPassword()),
-                Arrays.asList(new GuestbookRole(1L, "ROLE_USER")));
+        GuestbookUser user = createUserFromDetail(guestbookUserDetail);
         return userRepository.save(user);
     }
 
+    @Override
+    public GuestbookUser createUserFromDetail(GuestbookUserDetail guestbookUserDetail) {
+        return new GuestbookUser(guestbookUserDetail.getFirstName(),
+                guestbookUserDetail.getLastName(), guestbookUserDetail.getEmail(),
+                passwordEncoder.encode(guestbookUserDetail.getPassword()),
+                Arrays.asList(new GuestbookRole(1L, "ROLE_USER")));
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

@@ -23,14 +23,14 @@
                     class="icon-bar"></span> <span class="icon-bar"></span> <span
                     class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#" th:href="@{/guestbook}">Guestbook User Registration/Login</a>
+            <a class="navbar-brand" href="#" th:href="@{/}">Guestbook User Registration/Login</a>
         </div>
         <div id="navbar" class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
                 <li sec:authorize="isAuthenticated()"><a th:href="@{/logout}">Logout</a></li>
             </ul>
             <ul class="nav navbar-nav">
-                <li sec:authorize="isAuthenticated()"><a th:href="@{/review/${username}}">Review</a></li>
+                <li sec:authorize="isAuthenticated()"><a th:href="@{/review/$*{userId}}">Review</a></li>
             </ul>
         </div>
     </div>

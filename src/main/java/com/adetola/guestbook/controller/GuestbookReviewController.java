@@ -33,7 +33,7 @@ public class GuestbookReviewController {
 
     @PostMapping(value = "/guestbook/review/")
     public String addUserReview(@ModelAttribute("guestbook_review") GuestbookReview guestbookReview) {
-        reviewService.saveReview(guestbookReview);
+ //       reviewService.saveReview(guestbookReview);
         return "redirect:/review?success";
     }
 }

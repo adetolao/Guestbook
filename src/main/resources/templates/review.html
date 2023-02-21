@@ -40,11 +40,11 @@
 
             <h1>Review Entry Form</h1>
 
-            <form th:action="@{/guestbook/review}" method="post" th:object="${guestbook_review}">
+            <form th:action="@{/review}" method="post" th:object="${guestbook_review}">
                 <div class="form-group">
                     <label class="control-label" for="userId"> </label>
                     <input id="userId" class="form-control" type="text" th:field="userId"
-                        th:value="${userId}" required autofocus="autofocus" />
+                        th:value="${param.userId}" required autofocus="autofocus" />
                 </div>
                 <div class="form-group">
                     <label class="control-label" for="reviewText"> Enter a review </label>
