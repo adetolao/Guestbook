@@ -1,33 +1,19 @@
 package com.adetola.guestbook.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.NotEmpty;
-import java.util.List;
-import java.util.Set;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "guestbook_role")
-public class GuestbookRole  implements GrantedAuthority {
+public class GuestbookRole {
 
     @Id
     private Long id;
-    @NotEmpty
     private String name;
-    @ManyToMany(mappedBy = "roles")
-    List<GuestbookUser> users;
+
+    public GuestbookRole() {
+    }
 
     public GuestbookRole(Long id, String name) {
         super();
@@ -35,8 +21,19 @@ public class GuestbookRole  implements GrantedAuthority {
         this.name = name;
     }
 
-    @Override
-    public String getAuthority() {
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

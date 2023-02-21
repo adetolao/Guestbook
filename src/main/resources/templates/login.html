@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="ISO-8859-1">
     <title>Registration and Login App</title>
@@ -23,8 +23,7 @@
                     class="icon-bar"></span> <span class="icon-bar"></span> <span
                     class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#" th:href="@{/}">Registration and
-                Login Module</a>
+            <a class="navbar-brand" href="#" th:href="@{/}">Guestbook Registration/Login System</a>
         </div>
     </div>
 </nav>
@@ -47,11 +46,6 @@
                 <!-- logout message -->
                 <div th:if="${param.logout}">
                     <div class="alert alert-info">You have been logged out.</div>
-                </div>
-
-                <!-- logout message -->
-                <div th:if="${param.approve}">
-                    <div class="alert alert-info">Approve Entry</div>
                 </div>
 
                 <div class = "form-group">

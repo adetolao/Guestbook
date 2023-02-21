@@ -4,34 +4,32 @@ import com.adetola.guestbook.entity.GuestbookRole;
 import com.adetola.guestbook.entity.GuestbookUser;
 import com.adetola.guestbook.exception.ResourceNotFoundException;
 import com.adetola.guestbook.model.GuestbookUserDetail;
-import com.adetola.guestbook.repository.UserRepository;
+import com.adetola.guestbook.repository.GuestbookUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     @Autowired
-    private UserRepository userRepository;
+    private GuestbookUserRepository userRepository;
 
-    public GuestbookLoginServiceImpl(UserRepository userRepository) {
+    public GuestbookLoginServiceImpl(GuestbookUserRepository userRepository) {
         super();
         this.userRepository = userRepository;
     }
 
-/*
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-*/
 
     @Override
     public boolean checkUserExist(GuestbookUser user) {
@@ -47,24 +45,16 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     }
 
     @Override
-    public GuestbookUser saveUser(GuestbookUser user) {
-/*        GuestbookPasswordEncoder passwordEncoder = new GuestbookPasswordEncoder();
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-
-        System.out.println("=======================["+hashedPassword+"]========================");
-        user.setPassword(hashedPassword);
- */
-        return userRepository.save(user);
-    }
-
-    @Override
     public List<GuestbookUser> getAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
     public GuestbookUser getUserById(Long id) {
-        return userRepository.getById(id);
+        GuestbookUser existingUser = userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("GuestbookUser", "Id", id));
+
+        return existingUser;
     }
 
     @Override
@@ -83,14 +73,6 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     }
 
     @Override
-    public GuestbookUser save(GuestbookUserDetail guestbookUserDetail) {
-        GuestbookUser user = new GuestbookUser(1L, guestbookUserDetail.getFirstName(),
-                guestbookUserDetail.getLastName(), guestbookUserDetail.getEmail(),
-                guestbookUserDetail.getPassword(), Arrays.asList(new GuestbookRole(1L, "ROLE_USER")));
-        return userRepository.save(user);
-    }
-
-    @Override
     public void deleteUser(Long id) {
 
         // check whether a GuestbookUser exist in a DB or not
@@ -104,20 +86,8 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
         GuestbookUser adminUser = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("AdminUser", "adminId", adminId));
 
-/*
-        if (adminUser.getRoles()..equalsIgnoreCase("admin")) {
-            throw new UserNoPrivilegeException("AdminUser", "admin", adminId);
-        }
-*/
-
         GuestbookUser existingUser = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("GuestbookUser", "Id", id));
-
-/*
-        if (existingUser.getAccessLevel().equals(user.getAccessLevel())) {
-            existingUser.setAccessLevel(user.getAccessLevel());
-        }
-*/
 
         // save existing user to DB
         userRepository.save(existingUser);
@@ -127,11 +97,10 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
     @Override
     public GuestbookUser authenticateUser(GuestbookUser user) {
         List<GuestbookUser> allUsers = userRepository.findAll();
-//        GuestbookPasswordEncoder passwordEncoder = new GuestbookPasswordEncoder();
 
         for (GuestbookUser existingUser : allUsers) {
             if (existingUser.getEmail().equals(user.getEmail())) {
-                if (existingUser.getPassword().equals(user.getPassword())) {
+                if (passwordEncoder.matches(existingUser.getPassword(), user.getPassword())) {
                     return user;
                 }
             }
@@ -139,12 +108,19 @@ public class GuestbookLoginServiceImpl implements GuestbookLoginService {
         return null;
     }
 
-/*
-    public boolean matchPassword (String inputPassword, String storedPassword) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        return passwordEncoder.matches(inputPassword, storedPassword);
+    @Override
+    public GuestbookUser saveUser(GuestbookUserDetail guestbookUserDetail) {
+        GuestbookUser existingUser = userRepository.findByEmail(guestbookUserDetail.getEmail());
+        if (null != existingUser) {
+            throw new UsernameNotFoundException("Username already used.");
+        }
+        GuestbookUser user = new GuestbookUser(guestbookUserDetail.getFirstName(),
+                guestbookUserDetail.getLastName(), guestbookUserDetail.getEmail(),
+                passwordEncoder.encode(guestbookUserDetail.getPassword()),
+                Arrays.asList(new GuestbookRole(1L, "ROLE_USER")));
+        return userRepository.save(user);
     }
-*/
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
